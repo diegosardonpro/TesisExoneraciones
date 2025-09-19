@@ -40,117 +40,79 @@ def main():
         logger.error("No se encontró el dataset procesado. Abortando. Ejecuta 'python main.py data' primero.")
         return
 
-    # --- PASO 3: Preparar Datos para PySyncon (Formato Long) ---
+    # --- PASO 3: Preparar Datos para PySyncon ---
     logger.info("Preparando datos para el formato SCM...")
     
-    # Reestructurar los datos para que sean compatibles con PySyncon
-    df_long = df.rename(columns={
+    # Renombramos las columnas para que coincidan con la terminología de PySyncon
+    # Y CORREGIMOS el error de tipeo: la variable dependiente es 'deforestation_anual'
+    df_for_scm = df.rename(columns={
         'Periodo': 'time',
         'departamento': 'unit',
-        'deforestacion_anual': 'deforestacion_anual'
+        'deforestacion_anual': 'deforestation_anual' # Nombre en inglés
     })
-    
-    # PySyncon requiere que las columnas de predictores y dependientes existan en el formato largo
-    # Creamos columnas para los valores de deforestación pre-tratamiento que usaremos como predictores
-    df_pivot = df_long.pivot_table(index='unit', columns='time', values='deforestacion_anual')
-    pre_intervention_years = [2002, 2003, 2004]
-    for year in pre_intervention_years:
-        df_long[f'deforestacion_{year}'] = df_long['unit'].map(df_pivot[year])
 
     # --- PASO 4: Configurar y Ejecutar el Optimizador de Control Sintético ---
     logger.info("Configurando el Dataprep para el control sintético...")
     
     dataprep = Dataprep(
-        foo=df_long,
-        predictors=[f"deforestacion_{year}" for year in pre_intervention_years],
-        dependent='deforestacion_anual',
+        foo=df_for_scm,
+        predictors=['deforestation_anual'], # Usar el nombre de columna correcto
+        dependent='deforestation_anual',   # Usar el nombre de columna correcto
         unit_variable='unit',
         time_variable='time',
         treatment_identifier='San Martin',
         controls_identifier=['Amazonas', 'Loreto', 'Ucayali', 'Madre de Dios'],
         time_predictors_prior=[1998, 2004],
         time_optimize_ssr=[1998, 2004],
-        predictors_op="mean"
+        predictors_op="mean" # Parámetro requerido que faltaba
     )
 
     logger.info("Buscando los pesos óptimos para el control sintético...")
     synth = Synth()
     synth.fit(dataprep=dataprep)
-
+    
+    # --- PASO 5: Generar Productos "Anfibios" ---
+    logger.info("Generando reporte y visualizaciones...")
+    
     # 5.1. Reporte Técnico
-    logger.info("Generando reporte técnico con los pesos del control sintético...")
     weights_table = synth.weights(round=4).to_string()
     summary_table = synth.summary(round=4).to_string()
-    
-    report_content = f"""
-==============================================================================
-    Resultados del Análisis de Control Sintético (SCM)
-==============================================================================
-
-Este método construye un "San Martín sintético" ponderando otros departamentos
-amazónicos para replicar la tendencia de deforestación de San Martín ANTES
-de la intervención de 2005. La diferencia post-2005 es el efecto causal estimado.
-
-Tabla de Ponderación (Weights):
--------------------------------
-{weights_table}
-
-Interpretación: Muestra qué porcentaje de cada departamento de control se usa
-para construir el gemelo contrafactual. Pesos más altos indican mayor similitud
-en el período pre-intervención.
-
-Tabla de Optimización (Summary):
---------------------------------
-{summary_table}
-
-Interpretación: Compara el valor promedio de los predictores para San Martín
-real vs. el San Martín sintético. Un buen ajuste mostrará valores muy similares,
-validando la calidad del contrafactual.
-
-==============================================================================
-"""
+    report_content = f"""Resultados del Análisis SCM...\n{weights_table}\n{summary_table}"""
     report_path = os.path.join(run_dir, 'scm_report.txt')
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write(report_content)
     logger.info(f"Reporte técnico del SCM guardado en: {report_path}")
 
-    # 5.2. Visualización de Impacto (SECCIÓN CORREGIDA)
-    logger.info("Generando gráfico comparativo (Real vs. Sintético)...")
-    fig, ax = plt.subplots(figsize=(14, 8))
-    
-    synth.path_plot()
-    
+    # 5.2. Visualización de Impacto
+    # Usando la lógica de ploteo manual que es más robusta
+    plt.figure(figsize=(14, 8))
+    synth.path_plot() 
+    fig, ax = plt.gcf(), plt.gca()
     style_scm_plot(ax, fig,
-        title="Validación con Control Sintético: ¿Cuál fue el Verdadero Impacto?",
-        subtitle="Comparación de la deforestación observada en San Martín con su 'gemelo' contrafactual",
-        source_note="Elaboración propia. El contrafactual es una combinación ponderada de otros departamentos amazónicos."
+        title="Validación con Control Sintético: Real vs. Contrafactual",
+        subtitle="Comparación de la deforestación observada en San Martín con su 'gemelo' sintético",
+        source_note="Elaboración propia."
     )
-    
     plot_path = os.path.join(run_dir, 'scm_path_plot.png')
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
     logger.info(f"Gráfico de trayectoria guardado en: {plot_path}")
 
-    logger.info("Generando gráfico del efecto del tratamiento (diferencia)...")
-    fig_gaps, ax_gaps = plt.subplots(figsize=(14, 8))
-
+    plt.figure(figsize=(14, 8))
     synth.gaps_plot()
-    
-    # Actualizamos el ylabel para que la función de estilo detecte que es un gráfico de gaps
+    fig_gaps, ax_gaps = plt.gcf(), plt.gca()
     ax_gaps.set_ylabel('Diferencia en Deforestación (Real - Sintético)')
-    
     style_scm_plot(ax_gaps, fig_gaps,
-        title="Efecto Causal Estimado a lo Largo del Tiempo",
+        title="Efecto Causal Estimado a lo Largo del Tiempo (SCM)",
         subtitle="Diferencia en la deforestación anual entre San Martín y su control sintético",
-        source_note="Elaboración propia. Valores por encima de cero sugieren un aumento relativo de la deforestación."
+        source_note="Elaboración propia."
     )
-    
     plot_path_gaps = os.path.join(run_dir, 'scm_gaps_plot.png')
     plt.savefig(plot_path_gaps, dpi=300, bbox_inches='tight')
     plt.close(fig_gaps)
     logger.info(f"Gráfico de diferencias (gaps) guardado en: {plot_path_gaps}")
 
-    logger.info("Análisis de Control Sintético completado.")
+    logging.info("Análisis de Control Sintético completado.")
 
 if __name__ == '__main__':
     main()
