@@ -31,7 +31,7 @@ def main():
     parser = argparse.ArgumentParser(description="Orquestador del proyecto de análisis de deforestación.")
     parser.add_argument(
         "step", 
-        choices=["data", "eda", "parallel_trends", "did", "robustness"], 
+        choices=["data", "eda", "parallel_trends", "did", "robustness", "event_study"], 
         help="El paso del análisis a ejecutar."
     )
     args = parser.parse_args()
@@ -53,6 +53,9 @@ def main():
     elif args.step == "robustness":
         from src.analysis import robustness_checks
         robustness_checks.main()
+    elif args.step == "event_study":
+        from src.analysis import event_study_analysis
+        event_study_analysis.main()
     
     logging.info(f"--- Paso '{args.step}' completado exitosamente. ---")
 
