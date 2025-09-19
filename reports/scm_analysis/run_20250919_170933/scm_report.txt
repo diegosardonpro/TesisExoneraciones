@@ -1,0 +1,32 @@
+
+==============================================================================
+    Resultados del Análisis de Control Sintético (SCM)
+==============================================================================
+
+Este método construye un "San Martín sintético" ponderando otros departamentos
+amazónicos para replicar la tendencia de deforestación de San Martín ANTES
+de la intervención de 2005. La diferencia post-2005 es el efecto causal estimado.
+
+Tabla de Ponderación (Weights):
+-------------------------------
+Amazonas         1.0
+Loreto           0.0
+Ucayali          0.0
+Madre de Dios    0.0
+
+Interpretación: Muestra qué porcentaje de cada departamento de control se usa
+para construir el gemelo contrafactual. Pesos más altos indican mayor similitud
+en el período pre-intervención.
+
+Tabla de Optimización (Summary):
+--------------------------------
+                         V  treated  synthetic  sample mean
+deforestacion_2002  0.3634    13.23       5.80       0.6825
+deforestacion_2003  0.2401    19.48      -0.83       1.1425
+deforestacion_2004  0.3965    14.04       5.11       3.8100
+
+Interpretación: Compara el valor promedio de los predictores para San Martín
+real vs. el San Martín sintético. Un buen ajuste mostrará valores muy similares,
+validando la calidad del contrafactual.
+
+==============================================================================
