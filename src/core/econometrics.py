@@ -1,94 +1,138 @@
 # -*- coding: utf-8 -*-
 """
-Módulo central para el análisis econométrico.
-
-Contiene la clase DiDAnalysis que encapsula la lógica para el análisis
-de Diferencias en Diferencias, asegurando modularidad y reutilizabilidad.
+Módulo de econometría con la clase principal para análisis DiD.
 """
 import pandas as pd
 import statsmodels.formula.api as smf
-import logging
+import matplotlib.pyplot as plt
+import numpy as np
+from .visualization_utils import style_plot
 
 class DiDAnalysis:
     """
-    Una clase para gestionar y ejecutar un análisis de Diferencias en Diferencias.
+    Clase para encapsular la lógica del análisis de Diferencias en Diferencias.
     """
-    def __init__(self, data_path, treatment_group, control_group, treatment_year):
-        """
-        Inicializa el análisis DiD.
-
-        Args:
-            data_path (str): Ruta al archivo de datos procesados.
-            treatment_group (str): Nombre del departamento de tratamiento.
-            control_group (list): Lista de nombres de departamentos de control.
-            treatment_year (int): Año en que comienza la intervención.
-        """
-        self.data_path = data_path
-        self.treatment_group = treatment_group
-        self.control_group = control_group
+    def __init__(self, data_path, treatment_unit, treatment_year):
+        self.df = pd.read_csv(data_path)
+        self.treatment_unit = treatment_unit
         self.treatment_year = treatment_year
-        self.df = None
-        self.results = {}
-        self._load_and_prepare_data()
+        self._prepare_data()
 
-    def _load_and_prepare_data(self):
-        """Carga y prepara el DataFrame para el análisis."""
-        try:
-            # Cargar solo los datos de los grupos de tratamiento y control
-            full_df = pd.read_csv(self.data_path)
-            self.df = full_df[full_df['departamento'].isin([self.treatment_group] + self.control_group)].copy()
-            
-            # Crear las variables necesarias para el modelo DiD
-            self.df['tratado'] = (self.df['departamento'] == self.treatment_group).astype(int)
-            self.df['post_treatment'] = (self.df['Periodo'] >= self.treatment_year).astype(int)
-            self.df['did'] = self.df['post_treatment'] * self.df['tratado']
-            logging.info("Datos cargados y preparados para el análisis.")
-        except FileNotFoundError:
-            logging.error(f"No se encontró el archivo de datos en {self.data_path}.")
-            raise
-
-    def run_parallel_trends_test(self):
-        """Ejecuta la prueba estadística de tendencias paralelas."""
-        logging.info("Ejecutando la prueba estadística de tendencias paralelas...")
-        pre_intervention_df = self.df[self.df['Periodo'] < self.treatment_year].copy()
-        pre_intervention_df['año_norm'] = pre_intervention_df['Periodo'] - pre_intervention_df['Periodo'].min()
-        
-        model = smf.ols('deforestacion_anual ~ tratado + año_norm + tratado:año_norm', data=pre_intervention_df).fit()
-        self.results['parallel_trends'] = {
-            'summary': model.summary(),
-            'p_value_interaction': model.pvalues['tratado:año_norm'],
-            'coef_interaction': model.params['tratado:año_norm']
-        }
-        logging.info("Prueba de tendencias paralelas completada.")
-        return self.results['parallel_trends']
+    def _prepare_data(self):
+        """Prepara el DataFrame para el análisis DiD."""
+        self.df['tratado'] = (self.df['departamento'] == self.treatment_unit).astype(int)
+        self.df['post_treatment'] = (self.df['Periodo'] >= self.treatment_year).astype(int)
+        self.df['did'] = self.df['tratado'] * self.df['post_treatment']
 
     def run_did_model(self, start_year=None, end_year=None):
         """
-        Ejecuta el modelo DiD principal.
-
-        Args:
-            start_year (int, optional): Año de inicio para el análisis post-tratamiento. Defaults to treatment_year.
-            end_year (int, optional): Año de fin para el análisis post-tratamiento. Defaults to last year in data.
-
-        Returns:
-            dict: Un diccionario con el resumen y los parámetros del modelo.
+        Ejecuta el modelo DiD clásico.
+        Permite filtrar por un rango de años para análisis específicos.
         """
-        start_year = start_year or self.treatment_year
-        end_year = end_year or self.df['Periodo'].max()
-        period_key = f"did_{start_year}_{end_year}"
-        logging.info(f"Ejecutando modelo DiD para el período {start_year}-{end_year}...")
+        if start_year and end_year:
+            subset_df = self.df[(self.df['Periodo'] >= start_year) & (self.df['Periodo'] <= end_year)]
+        else:
+            subset_df = self.df
         
-        analysis_df = self.df[
-            (self.df['Periodo'] < self.treatment_year) | 
-            ((self.df['Periodo'] >= start_year) & (self.df['Periodo'] <= end_year))
-        ].copy()
+        model = smf.ols('deforestacion_anual ~ tratado + post_treatment + did', data=subset_df)
+        results = model.fit()
+        return results
 
-        model = smf.ols('deforestacion_anual ~ tratado + post_treatment + did', data=analysis_df).fit()
+    def plot_did_results(self, did_results, title, run_dir, filename="did_visual_summary.png"):
+        """Genera un gráfico de barras para visualizar los resultados del DiD."""
+        # Extraer datos para el gráfico
+        pre_treatment_control = self.df[(self.df['tratado'] == 0) & (self.df['post_treatment'] == 0)]['deforestacion_anual'].mean()
+        post_treatment_control = self.df[(self.df['tratado'] == 0) & (self.df['post_treatment'] == 1)]['deforestacion_anual'].mean()
+        pre_treatment_treated = self.df[(self.df['tratado'] == 1) & (self.df['post_treatment'] == 0)]['deforestacion_anual'].mean()
+        post_treatment_treated = self.df[(self.df['tratado'] == 1) & (self.df['post_treatment'] == 1)]['deforestacion_anual'].mean()
+
+        labels = ['Grupo de Control', 'Grupo de Tratamiento (San Martín)']
+        pre_means = [pre_treatment_control, pre_treatment_treated]
+        post_means = [post_treatment_control, post_treatment_treated]
         
-        self.results[period_key] = {
-            'summary': model.summary(),
-            'coef_did': model.params['did'],
-            'p_value_did': model.pvalues['did']
-        }
-        logging.info(f"Modelo DiD para {period_key} completado.")
-        return self.results[period_key]
+        x = np.arange(len(labels))
+        width = 0.35
+
+        fig, ax = plt.subplots(figsize=(10, 7))
+        rects1 = ax.bar(x - width/2, pre_means, width, label=f'Pre-{self.treatment_year}', color='#457B9D', alpha=0.7)
+        rects2 = ax.bar(x + width/2, post_means, width, label=f'Post-{self.treatment_year}', color='#A8DADC')
+
+        # Estilo
+        ax.set_ylabel('Deforestación Anual Promedio (miles de ha)')
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels)
+        ax.legend(frameon=False, loc='upper left')
+
+        style_plot(fig, ax, title, 
+                   f"Efecto DiD estimado: {did_results.params['did']:.2f} (p-valor: {did_results.pvalues['did']:.3f})",
+                   "", 'Deforestación Anual Promedio',
+                   'Fuente: Elaboración propia con datos de MapBiomas Perú.')
+        
+        # Guardar la figura
+        plot_path = f"{run_dir}/{filename}"
+        fig.savefig(plot_path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        return plot_path
+
+    def run_parallel_trends_test(self):
+        """Ejecuta la prueba de tendencias paralelas."""
+        pre_intervention_df = self.df[self.df['Periodo'] < self.treatment_year].copy()
+        pre_intervention_df['año_norm'] = pre_intervention_df['Periodo'] - pre_intervention_df['Periodo'].min()
+        model = smf.ols('deforestacion_anual ~ tratado + año_norm + tratado:año_norm', data=pre_intervention_df)
+        results = model.fit()
+        return results
+
+    def run_event_study_model(self):
+        """Ejecuta un modelo de estudio de eventos."""
+        df_event = self.df.copy()
+        df_event['relative_year'] = df_event['Periodo'] - self.treatment_year
+        
+        # Omitir el año base (-1) para evitar multicolinealidad perfecta
+        df_event = df_event[df_event['relative_year'] != -1]
+        
+        # Crear dummies para cada año relativo y tratarlas como categóricas
+        formula = f'deforestacion_anual ~ tratado * C(relative_year, Treatment(reference=0)) + C(departamento) + C(Periodo)'
+        
+        model = smf.ols(formula, data=df_event)
+        results = model.fit()
+        return results
+
+    def plot_event_study_results(self, event_study_results, run_dir):
+        """Genera un gráfico para visualizar los resultados del estudio de eventos."""
+        params = event_study_results.params.filter(like='tratado:C(relative_year').reset_index()
+        conf_int = event_study_results.conf_int().filter(like='tratado:C(relative_year', axis=0)
+        
+        params.columns = ['term', 'coef']
+        params['relative_year'] = params['term'].apply(lambda x: int(x.split('T.')[1][:-1]))
+        
+        conf_int.reset_index(inplace=True)
+        conf_int.columns = ['term', 'conf_low', 'conf_high']
+        
+        plot_data = pd.merge(params, conf_int, on='term')
+        
+        # Añadir el punto base (año -1, efecto 0)
+        base_year = pd.DataFrame({'relative_year': [-1], 'coef': [0], 'conf_low': [0], 'conf_high': [0]})
+        plot_data = pd.concat([base_year, plot_data]).sort_values('relative_year')
+
+        fig, ax = plt.subplots(figsize=(12, 8))
+        
+        yerr = [plot_data['coef'] - plot_data['conf_low'], plot_data['conf_high'] - plot_data['coef']]
+        ax.errorbar(plot_data['relative_year'], plot_data['coef'], yerr=yerr,
+                    fmt='-o', color='#005f73', capsize=5, label='Coeficiente de Impacto Anual')
+        
+        ax.axhline(0, color='black', linestyle='--', linewidth=0.8)
+        ax.axvline(x=-0.5, color='#E63946', linestyle=':', linewidth=2, label=f'Intervención ({self.treatment_year})')
+        
+        ax.set_xticks(plot_data['relative_year'])
+        ax.legend(frameon=False, loc='lower left')
+        
+        style_plot(fig, ax, "Análisis de Estudio de Eventos",
+                   "Evolución del Impacto de la Política Año a Año",
+                   f"Años relativos a la intervención (Año 0 = {self.treatment_year})",
+                   "Coeficiente de Impacto (miles de ha)",
+                   'Fuente: Elaboración propia con datos de MapBiomas Perú.')
+        
+        plot_path = f"{run_dir}/event_study_plot.png"
+        fig.savefig(plot_path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        return plot_path
