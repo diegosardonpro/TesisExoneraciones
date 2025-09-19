@@ -49,3 +49,12 @@
     *   **`src/data/make_dataset.py`**: Se crea un nuevo script cuya única función es leer de `01_raw`, aplicar toda la limpieza (cálculo de `deforestacion_anual`, eliminación del outlier de 1997) y guardar el resultado.
     *   **`data/02_processed/`**: Contendrá el dataset limpio (`deforestation_analysis_data.csv`), que será la única fuente de datos para todos los análisis futuros.
 3.  **Acción Inmediata:** Se procederá a crear `make_dataset.py`, ejecutarlo para generar los datos procesados, y luego refactorizar todos los scripts de análisis (`exploratory_data_analysis.py`, `descriptive_table.py`, `parallel_trends_validation.py`) para que lean directamente del nuevo archivo limpio.
+
+## Entrada 7: Implementación de Flujo de Trabajo con Versionamiento y Logging
+
+1.  **Decisión:** Se aprueba la propuesta de implementar un sistema de versionamiento de salidas y logging para todos los análisis.
+2.  **Metodología:**
+    *   Se creará un módulo `src/utils.py` con una función `setup_run_environment()`.
+    *   Esta función creará una carpeta única con marca de tiempo para cada ejecución de un script (ej. `reports/analysis_name/run_YYYYMMDD_HHMMSS/`).
+    *   Dentro de esta carpeta, se guardarán todos los productos (gráficos, tablas) y un archivo `run.log` que registrará cada paso del proceso.
+3.  **Acción Inmediata:** Se procederá a crear el módulo `utils`, refactorizar todos los scripts de análisis para usar este nuevo sistema y documentar el cambio en el `README.md`.

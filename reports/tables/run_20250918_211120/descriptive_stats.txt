@@ -1,0 +1,16 @@
+Tabla 1: Estadísticas Descriptivas de la Deforestación Anual por Departamento (1998-2023)
+========================================================================================================================
+ departamento    Observaciones (N)    Media    Desv. Estándar    Mínimo    Percentil 25 (Q1)    Mediana (Q2)    Percentil 75 (Q3)    Máximo
+--------------  -------------------  -------  ----------------  --------  -------------------  --------------  -------------------  --------
+   Amazonas             26            3.52          4.75         -5.89           0.39               2.83              6.48           15.38
+    Loreto              26            23.07        24.89         -24.21           5.4               25.3              33.69          91.26
+Madre de Dios           26            0.63          45.4        -217.09          3.54               6.82              11.55          47.11
+  San Martin            26            12.03         9.31         -15.07          5.87              14.01              18.88          24.33
+   Ucayali              26            17.31        15.84          0.25           5.53              13.61              22.7           62.83
+========================================================================================================================
+Notas:
+1.  La deforestación anual se calcula como la diferencia interanual de la cobertura boscosa.
+2.  Las cifras están expresadas en miles de hectáreas.
+3.  El año 1997 fue excluido del análisis para eliminar un valor atípico inicial producto del cálculo.
+
+Fuente: Elaboración propia a partir de datos de MapBiomas Perú (Procesado - Colección 4.0).

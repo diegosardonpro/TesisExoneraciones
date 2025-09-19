@@ -19,7 +19,7 @@ print("Procesando datos: calculando deforestación anual y eliminando outliers..
 df = df.sort_values(by=['departamento', 'Periodo'])
 df['deforestacion_anual'] = df.groupby('departamento')['cobertura_boscosa'].diff() * -1
 df = df.dropna(subset=['deforestacion_anual'])
-df = df[df['Periodo'] != 1997] # Excluir el outlier del año 1997
+df = df[df['Periodo'] >= 1998].copy() # Excluir todos los años antes de 1998
 print("Procesamiento completado.", flush=True)
 
 # --- PASO 3: Guardar dataset procesado ---
