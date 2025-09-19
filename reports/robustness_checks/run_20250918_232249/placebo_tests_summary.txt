@@ -1,0 +1,11 @@
+Resultados de las Pruebas de Placebo
+=======================================
+Un modelo robusto no debería mostrar efectos significativos en años placebo.
+
+ year       coef  p_value
+ 1999  -9.045067 0.656638
+ 2000  -7.136111 0.626912
+ 2001  -8.909662 0.465766
+ 2002 -11.385455 0.290886
+ 2003 -13.424889 0.170270
+ 2004 -16.676778 0.065618

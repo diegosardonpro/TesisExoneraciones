@@ -31,7 +31,7 @@ def main():
     parser = argparse.ArgumentParser(description="Orquestador del proyecto de análisis de deforestación.")
     parser.add_argument(
         "step", 
-        choices=["data", "eda", "parallel_trends", "did"], 
+        choices=["data", "eda", "parallel_trends", "did", "robustness"], 
         help="El paso del análisis a ejecutar."
     )
     args = parser.parse_args()
@@ -48,10 +48,11 @@ def main():
         from src.analysis import parallel_trends_validation
         parallel_trends_validation.main()
     elif args.step == "did":
-        # Se necesita crear el script did_analysis.py
-        # from src.analysis import did_analysis
-        # did_analysis.main()
-        logging.warning("El paso 'did' aún no está implementado.")
+        from src.analysis import did_analysis
+        did_analysis.main()
+    elif args.step == "robustness":
+        from src.analysis import robustness_checks
+        robustness_checks.main()
     
     logging.info(f"--- Paso '{args.step}' completado exitosamente. ---")
 
