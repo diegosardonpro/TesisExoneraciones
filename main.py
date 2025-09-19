@@ -14,6 +14,15 @@ Uso desde la terminal:
 
 - Para ejecutar el análisis de impacto DiD:
   python main.py did
+
+- Para ejecutar las pruebas de robustez (placebo):
+  python main.py robustness
+
+- Para ejecutar el análisis de estudio de eventos:
+  python main.py event_study
+
+- Para ejecutar el análisis de Control Sintético (SCM):
+  python main.py scm
 """
 import argparse
 import logging
@@ -21,8 +30,8 @@ import sys
 
 # Configuración del logging para que los mensajes se muestren en la consola
 logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(levelname)s - %(message)s', 
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
     stream=sys.stdout
 )
 
@@ -30,8 +39,8 @@ def main():
     """Punto de entrada principal del programa."""
     parser = argparse.ArgumentParser(description="Orquestador del proyecto de análisis de deforestación.")
     parser.add_argument(
-        "step", 
-        choices=["data", "eda", "parallel_trends", "did", "robustness", "event_study"], 
+        "step",
+        choices=["data", "eda", "parallel_trends", "did", "robustness", "event_study", "scm"],
         help="El paso del análisis a ejecutar."
     )
     args = parser.parse_args()
@@ -56,7 +65,10 @@ def main():
     elif args.step == "event_study":
         from src.analysis import event_study_analysis
         event_study_analysis.main()
-    
+    elif args.step == "scm":
+        from src.analysis import scm_analysis
+        scm_analysis.main()
+
     logging.info(f"--- Paso '{args.step}' completado exitosamente. ---")
 
 if __name__ == "__main__":

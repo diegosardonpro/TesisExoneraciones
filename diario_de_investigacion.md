@@ -83,3 +83,10 @@
     *   `python main.py parallel_trends`: Ejecutó la validación visual y estadística del supuesto de tendencias paralelas.
 2.  **Limpieza del Repositorio:** Se eliminaron todos los artefactos (gráficos, tablas) de corridas anteriores para mantener únicamente los resultados válidos y actuales.
 3.  **Estado del Proyecto:** **FASE DE VALIDACIÓN INICIAL COMPLETADA.** El proyecto se encuentra en un estado estable, robusto, automatizado y completamente versionado. La base para el análisis de impacto final está firmemente establecida.
+
+## Entrada 11: Fase Final - Estudio de Eventos y Control Sintético (SCM)
+
+1.  **Análisis de la Dinámica del Impacto:** Se implementó y ejecutó el análisis de **Estudio de Eventos** (`python main.py event_study`). Este paso fue crucial para visualizar la evolución del efecto de la política año a año, confirmando la narrativa del "efecto diferido" que se sospechaba a partir del análisis DiD.
+2.  **Depuración y Resiliencia:** La implementación del SCM presentó una serie de desafíos técnicos relacionados con la versión de la librería `pysyncon`. Estos errores (`TypeError`, `AttributeError`, `ValueError`) fueron superados mediante un proceso iterativo de depuración instrumentada con logging, que culminó en la corrección final de la preparación de datos y las llamadas a la API de ploteo.
+3.  **Validación Definitiva con SCM:** Se ejecutó con éxito el análisis de **Método de Control Sintético** (`python main.py scm`). Este método, considerado el "estándar de oro", generó un contrafactual robusto y proporcionó la estimación más fiable del impacto causal de la política.
+4.  **Estado del Proyecto:** **ANÁLISIS COMPLETADO.** Todos los análisis econométricos planificados se han ejecutado. El proyecto ha generado un conjunto completo de reportes técnicos y visualizaciones que narran una historia coherente y validada sobre el impacto de la política fiscal en la deforestación.
