@@ -90,3 +90,10 @@
 2.  **Depuración y Resiliencia:** La implementación del SCM presentó una serie de desafíos técnicos relacionados con la versión de la librería `pysyncon`. Estos errores (`TypeError`, `AttributeError`, `ValueError`) fueron superados mediante un proceso iterativo de depuración instrumentada con logging, que culminó en la corrección final de la preparación de datos y las llamadas a la API de ploteo.
 3.  **Validación Definitiva con SCM:** Se ejecutó con éxito el análisis de **Método de Control Sintético** (`python main.py scm`). Este método, considerado el "estándar de oro", generó un contrafactual robusto y proporcionó la estimación más fiable del impacto causal de la política.
 4.  **Estado del Proyecto:** **ANÁLISIS COMPLETADO.** Todos los análisis econométricos planificados se han ejecutado. El proyecto ha generado un conjunto completo de reportes técnicos y visualizaciones que narran una historia coherente y validada sobre el impacto de la política fiscal en la deforestación.
+
+## Entrada 12: Cierre del Proyecto
+
+1.  **Refactorización Final:** Se implementó una versión final y más elegante del script de SCM, que simplifica la preparación de datos y la lógica de visualización.
+2.  **Ejecución Final:** Se re-ejecutó el pipeline completo con el script SCM mejorado, generando los artefactos finales de la investigación.
+3.  **Documentación y Versionamiento:** Se actualizó el diario de investigación por última vez y se subió el estado final y completo del proyecto al repositorio de GitHub.
+4.  **Estado del Proyecto:** **CERRADO.**
