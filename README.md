@@ -1,41 +1,51 @@
 # Proyecto: Impacto de Exoneraciones Tributarias en San Martín
 
 ## 1. Objetivo de la Investigación
+Este proyecto busca analizar el impacto del régimen fiscal especial aplicado en el departamento de San Martín (Perú) entre 2005 y 2025. La hipótesis central es que la modificación de los incentivos tributarios, en comparación con otros departamentos amazónicos, pudo haber generado condiciones que facilitaron la depreciación del Capital Natural (deforestación) y el crecimiento de economías ilícitas.
 
-Este proyecto busca analizar el impacto del régimen fiscal especial aplicado en el departamento de San Martín (Perú) entre 2005 y 2025. La hipótesis central es que la modificación de los incentivos tributarios, en comparación con otros departamentos amazónicos, pudo haber generado condiciones que facilitaron la depreciación del Capital Natural (deforestación) y el crecimiento de economías ilícitas, un fenómeno oculto por métricas tradicionales como el PBI.
+## 2. Flujo de Trabajo y Automatización
+Este proyecto sigue un flujo de trabajo modular y automatizado para garantizar la máxima reproducibilidad y transparencia. Todas las operaciones se gestionan a través del script orquestador `main.py`.
 
-La investigación se enmarca en los conceptos de la "Economía de la Biodiversidad" (Informe Dasgupta) y sigue un enfoque de "Investigación Anfibia" (Rodríguez Garavito), buscando generar conocimiento riguroso con potencial de incidencia en políticas públicas.
+### Cómo Ejecutar el Análisis
+Abre una terminal en la raíz del proyecto y utiliza los siguientes comandos:
 
-## 2. Flujo de Trabajo y Reproducibilidad
+**Crear el Dataset Procesado:**
+Limpia los datos crudos y genera la "fuente de la verdad" para todos los análisis.
+```bash
+python main.py data
+```
 
-Este proyecto sigue un flujo de trabajo robusto para garantizar la máxima reproducibilidad y transparencia.
+**Generar Gráficos del EDA:**
+Crea las visualizaciones exploratorias a partir de los datos procesados.
+```bash
+python main.py eda
+```
 
-1.  **Datos Crudos (`/data/01_raw`):** Los datos originales no se modifican nunca.
-2.  **Procesamiento de Datos (`/src/data/make_dataset.py`):** Un script dedicado lee los datos crudos, los limpia, procesa y guarda una versión lista para el análisis.
-3.  **Datos Procesados (`/data/02_processed`):** Contiene los datasets limpios. Esta es la única fuente de datos para todo el análisis.
-4.  **Análisis y Validación (`/src/analysis`):** Los scripts de análisis leen exclusivamente de `/data/02_processed`.
-5.  **Resultados Versionados (`/reports`):** Cada ejecución de un script de análisis crea una carpeta única con marca de tiempo (ej. `run_YYYYMMDD_HHMMSS`) dentro de la carpeta de reportes correspondiente (`figures`, `tables`, `validation`). Esto evita la sobrescritura y crea un historial completo de cada experimento. Cada carpeta de ejecución contiene los artefactos generados (gráficos, tablas) y un archivo `run.log` con el registro detallado de la ejecución.
+**Validar Supuesto de Tendencias Paralelas:**
+Ejecuta la validación visual y estadística indispensable para el modelo DiD.
+```bash
+python main.py parallel_trends
+```
+
+**Ejecutar el Análisis de Impacto DiD:**
+Corre el modelo de Diferencias en Diferencias y genera el reporte de resultados.
+```bash
+python main.py did
+```
 
 ## 3. Estructura del Directorio
-
--   **/data**: Contiene todos los datos del proyecto.
-    -   **/01_raw**: Datos originales, sin ninguna modificación.
-    -   **/02_processed**: Datos limpios, transformados y listos para el análisis.
--   **/narratives**: Documentos fundacionales y marco teórico.
--   **/reports**: Resultados generados por los análisis, organizados en carpetas de ejecución versionadas.
-    -   **/figures**: Gráficos y visualizaciones.
-    -   **/tables**: Tablas de resultados.
-    -   **/validation**: Resultados de las pruebas de validación de los modelos.
--   **/src**: Código fuente.
-    -   **/data**: Scripts para el procesamiento de datos.
-    -   **/analysis**: Scripts para el análisis y modelado.
-    -   **/utils.py**: Funciones de utilidad compartidas (ej. logging, gestión de carpetas).
--   **diario_de_investigacion.md**: Bitácora que documenta el proceso de investigación, decisiones y hallazgos.
--   **README.md**: Este archivo.
-
-## 4. Pasos del Análisis
-
-1.  **Prueba de Humo (`smoke_test_analysis.py`):** Un primer análisis rápido para validar si existe una "señal" en los datos.
-2.  **Análisis Econométrico Principal:** (En desarrollo) Un modelo de Diferencias en Diferencias (DiD) y/o Control Sintético (SCM) para estimar el impacto causal de la ley de 2005.
-
-**VALIDATION_TEST_LINE_ABCDE**
+- **/data**: Contiene todos los datos.
+  - **/01_raw**: Datos originales, sin modificar.
+  - **/02_processed**: Datos limpios generados por `main.py data`. Única fuente para análisis.
+- **/reports**: Resultados generados, organizados en carpetas de ejecución versionadas.
+  - **/figures**: Gráficos y visualizaciones.
+  - **/tables**: Tablas de resultados.
+  - **/validation**: Resultados de validación de supuestos.
+  - **/did_analysis**: Reportes del análisis de impacto.
+- **/src**: Código fuente.
+  - **/core**: Módulos centrales y reutilizables.
+  - **/data**: Scripts para el procesamiento de datos (ej. `make_dataset.py`).
+  - **/analysis**: Scripts para cada fase del análisis.
+- **main.py**: Orquestador principal del proyecto.
+- **diario_de_investigacion.md**: Bitácora del proceso de investigación.
+- **README.md**: Este archivo.

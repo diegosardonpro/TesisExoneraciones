@@ -1,39 +1,50 @@
 # -*- coding: utf-8 -*-
+"""
+Script dedicado a leer los datos crudos, limpiarlos, procesarlos y guardar
+una versión única y validada que servirá como fuente para todos los análisis.
+"""
 
 import pandas as pd
 import os
+import logging
+import sys
 
-print("Executing make_dataset.py...", flush=True)
+def main():
+    """
+    Orquesta la creación del dataset procesado.
+    """
+    logging.info("Iniciando la creación del dataset procesado...")
 
-# --- PASO 1: Cargar datos crudos ---
-print("Iniciando la creación del dataset procesado...", flush=True)
-try:
-    df = pd.read_csv('data/01_raw/mapbiomas_cobertura_1996_2023.csv')
-    print("Datos crudos cargados exitosamente.", flush=True)
-except FileNotFoundError:
-    print("Error: No se encontró el archivo de datos crudos. Asegúrate de que la ruta es correcta.", flush=True)
-    exit()
+    # --- PASO 1: Cargar datos crudos ---
+    try:
+        df = pd.read_csv('data/01_raw/mapbiomas_cobertura_1996_2023.csv')
+        logging.info("Datos crudos cargados exitosamente.")
+    except FileNotFoundError:
+        logging.error("Error: No se encontró el archivo de datos crudos 'data/01_raw/mapbiomas_cobertura_1996_2023.csv'.")
+        return
 
-# --- PASO 2: Procesamiento y limpieza ---
-print("Procesando datos: calculando deforestación anual y eliminando outliers...", flush=True)
-df = df.sort_values(by=['departamento', 'Periodo'])
-df['deforestacion_anual'] = df.groupby('departamento')['cobertura_boscosa'].diff() * -1
-df = df.dropna(subset=['deforestacion_anual'])
-df = df[df['Periodo'] >= 1998].copy() # Excluir todos los años antes de 1998
-print("Procesamiento completado.", flush=True)
+    # --- PASO 2: Procesamiento y limpieza ---
+    logging.info("Procesando datos...")
+    
+    df = df.sort_values(by=['departamento', 'Periodo'])
+    df['deforestacion_anual'] = df.groupby('departamento')['cobertura_boscosa'].diff() * -1
+    
+    df_processed = df[df['Periodo'] >= 1998].copy()
+    logging.info("Filtro aplicado: El dataset ahora abarca desde 1998 hasta 2023.")
 
-# --- PASO 3: Guardar dataset procesado ---
-output_dir = 'data/02_processed'
-output_path = os.path.join(output_dir, 'deforestation_analysis_data.csv')
+    # --- PASO 3: Guardar dataset procesado ---
+    output_dir = 'data/02_processed'
+    output_path = os.path.join(output_dir, 'deforestation_analysis_data.csv')
 
-# Asegurarse de que el directorio de salida exista
-os.makedirs(output_dir, exist_ok=True)
-print(f"Directorio de salida: {output_dir}", flush=True)
+    os.makedirs(output_dir, exist_ok=True)
+    
+    try:
+        df_processed.to_csv(output_path, index=False)
+        logging.info(f"Dataset procesado y guardado exitosamente en: {output_path}")
+    except Exception as e:
+        logging.error(f"Error al guardar el archivo procesado: {e}")
 
-try:
-    df.to_csv(output_path, index=False)
-    print(f"Dataset procesado y guardado exitosamente en: {output_path}", flush=True)
-except Exception as e:
-    print(f"Error al guardar el archivo procesado: {e}", flush=True)
+    logging.info("Creación del dataset completada.")
 
-print("\nCreación del dataset completada.", flush=True)
+if __name__ == '__main__':
+    main()

@@ -1,126 +1,85 @@
 # -*- coding: utf-8 -*-
+"""
+Script para realizar un análisis rápido de "prueba de humo" para validar si 
+existe una "señal" en los datos que justifique un análisis más profundo.
+Este script ahora lee desde los datos procesados para mantener la consistencia.
+"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
+import logging
+import sys
 
-# --- PASO 1: Cargar los datos desde la carpeta de datos crudos ---
-try:
-    df = pd.read_csv('data/01_raw/mapbiomas_cobertura_1996_2023.csv')
-except FileNotFoundError:
-    print("Error: No se encontró el archivo 'data/01_raw/mapbiomas_cobertura_1996_2023.csv'")
-    print("Asegúrate de que el archivo de datos crudos esté en la ubicación correcta.")
-    exit()
+# Añadir el directorio raíz del proyecto al sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-# --- PASO 2: Calcular la deforestación anual ---
-df = df.sort_values(by=['departamento', 'Periodo'])
-df['deforestacion_anual'] = df.groupby('departamento')['cobertura_boscosa'].diff() * -1
-df = df.dropna(subset=['deforestacion_anual'])
-
-# --- PASO 3: Análisis Estadístico Descriptivo ---
-print("--- Análisis Estadístico Descriptivo de la Deforestación Anual (miles de hectáreas) ---")
-descriptive_stats = df.groupby('departamento')['deforestacion_anual'].describe()
-print(descriptive_stats.to_string(float_format="{:.2f}".format))
-print("\n" + "="*80 + "\n")
-
-# --- PASO 4: Preparar los grupos de Tratamiento y Control ---
-tratamiento_dep = 'San Martin'
-control_deps = ['Amazonas', 'Loreto', 'Ucayali']
-
-df_tratamiento = df[df['departamento'] == tratamiento_dep].copy()
-df_control_group = df[df['departamento'].isin(control_deps)]
-
-control_avg = df_control_group.groupby('Periodo')['deforestacion_anual'].mean().reset_index()
-
-# --- PASO 5: Generar el Gráfico de la Divergencia con Estilo Profesional ---
+from src.utils import setup_run_environment
 
 def style_chart(ax, fig, title, subtitle, xlabel, source_note):
-    """
-    Aplica un estilo consistente y profesional a un gráfico de Matplotlib,
-    basado en los ejemplos proporcionados por el usuario.
-
-    Args:
-        ax (matplotlib.axes.Axes): El objeto de ejes del gráfico.
-        fig (matplotlib.figure.Figure): El objeto de figura del gráfico.
-        title (str): El título principal del gráfico.
-        subtitle (str): El subtítulo o texto explicativo.
-        xlabel (str): La etiqueta para el eje X.
-        source_note (str): La nota de fuente al pie del gráfico.
-    """
-    # Limpiar estilo anterior
-    ax.clear()
-    
-    # --- Títulos y Subtítulos ---
-    ax.set_title(title, fontsize=18, fontweight='bold', pad=30, loc='center')
-    fig.suptitle(subtitle, y=0.92, fontsize=12, fontstyle='italic', ha='center')
-
-    # --- Ocultar Ejes y Bordes (Spines) ---
+    """Aplica un estilo consistente y profesional a un gráfico de Matplotlib."""
+    fig.suptitle(title, fontsize=18, fontweight='bold', ha='center')
+    ax.set_title(subtitle, fontsize=12, fontstyle='italic', pad=20, loc='center')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
+    ax.spines['bottom'].set_color('gray')
     ax.spines['left'].set_visible(False)
-
-    # --- Configuración del Eje X ---
     ax.set_xlabel(xlabel, fontsize=12, labelpad=15, color='gray')
-    ax.xaxis.grid(True, color='#EEEEEE', linestyle='--', linewidth=0.8)
+    ax.yaxis.grid(True, color='#EEEEEE', linestyle='--', linewidth=0.8)
     ax.set_axisbelow(True)
     ax.tick_params(axis='x', colors='gray', rotation=45)
-    
-    # --- Configuración del Eje Y ---
-    ax.tick_params(axis='y', length=0)
+    ax.tick_params(axis='y', length=0, colors='gray')
     ax.set_ylabel('Deforestación Anual (miles de hectáreas)', fontsize=12, color='gray')
-
-
-    # --- Añadir Nota de Fuente ---
     fig.text(0.05, 0.01, source_note, ha='left', fontsize=9, color='gray')
-
-    # --- Ajuste del Layout ---
     fig.tight_layout(rect=[0, 0.05, 1, 0.9])
 
-# Crear la figura y los ejes
-fig, ax = plt.subplots(figsize=(14, 8))
+def main():
+    """Función principal para orquestar la prueba de humo."""
+    run_dir = setup_run_environment('reports/figures/smoke_test')
+    logging.info("Iniciando la prueba de humo con datos procesados...")
 
-# Aplicar el nuevo estilo
-style_chart(ax, fig, 
-            title='Prueba de Humo: ¿Divergen las Tendencias de Deforestación?',
-            subtitle='Comparación de la deforestación anual en San Martín vs. el promedio de otros departamentos amazónicos',
-            xlabel='Año',
-            source_note='Fuente: Datos de cobertura boscosa de MapBiomas Perú. Elaboración propia.')
+    # --- PASO 1: Cargar los datos desde la carpeta de datos PROCESADOS ---
+    try:
+        df = pd.read_csv('data/02_processed/deforestation_analysis_data.csv')
+        logging.info("Datos procesados cargados para la prueba de humo.")
+    except FileNotFoundError:
+        logging.error("Error: No se encontró el archivo de datos procesados. Ejecuta 'src/data/make_dataset.py' primero.")
+        return
 
-# Dibujar los datos sobre el gráfico ya estilizado
-ax.plot(df_tratamiento['Periodo'], df_tratamiento['deforestacion_anual'], marker='o', linestyle='-', label='San Martín (Tratamiento)', color='#E63946')
-ax.plot(control_avg['Periodo'], control_avg['deforestacion_anual'], marker='s', linestyle='--', label='Promedio Control (Amazonas, Loreto, Ucayali)', color='#457B9D')
-ax.axvline(x=2005, color='#333333', linestyle=':', linewidth=2, label='Ley N° 28575 (Exclusión de San Martín)')
+    # --- PASO 2: Preparar los grupos de Tratamiento y Control ---
+    logging.info("Preparando grupos de tratamiento y control...")
+    tratamiento_dep = 'San Martin'
+    control_deps = ['Amazonas', 'Loreto', 'Ucayali']
 
-# Configurar leyenda
-ax.legend(loc='upper left', frameon=False)
+    df_tratamiento = df[df['departamento'] == tratamiento_dep].copy()
+    df_control_group = df[df['departamento'].isin(control_deps)]
 
-# Guardar el gráfico en la carpeta de reportes
-output_path = 'reports/figures/smoke_test_divergence_plot.png'
-plt.savefig(output_path, dpi=300, bbox_inches='tight')
-print(f"Gráfico con estilo profesional guardado en: {output_path}")
+    control_avg = df_control_group.groupby('Periodo')['deforestacion_anual'].mean().reset_index()
 
-# --- PASO 6: Calcular y mostrar el efecto preliminar ---
-pre_periodo_mask = (df['Periodo'] >= 2001) & (df['Periodo'] <= 2005)
-post_periodo_mask = (df['Periodo'] >= 2006) & (df['Periodo'] <= 2010)
+    # --- PASO 3: Generar el Gráfico de Divergencia ---
+    logging.info("Generando gráfico de divergencia...")
+    fig, ax = plt.subplots(figsize=(14, 8))
 
-tratamiento_pre = df_tratamiento.loc[pre_periodo_mask]['deforestacion_anual'].mean()
-tratamiento_post = df_tratamiento.loc[post_periodo_mask]['deforestacion_anual'].mean()
+    style_chart(ax, fig, 
+                title='Prueba de Humo: ¿Divergen las Tendencias de Deforestación?',
+                subtitle='Comparación de la deforestación anual en San Martín vs. el promedio de otros departamentos amazónicos (1998-2023)',
+                xlabel='Año',
+                source_note='Fuente: Datos de MapBiomas Perú (Procesado). Elaboración propia.')
 
-control_pre = control_avg[(control_avg['Periodo'] >= 2001) & (control_avg['Periodo'] <= 2005)]['deforestacion_anual'].mean()
-control_post = control_avg[(control_avg['Periodo'] >= 2006) & (control_avg['Periodo'] <= 2010)]['deforestacion_anual'].mean()
+    ax.plot(df_tratamiento['Periodo'], df_tratamiento['deforestacion_anual'], marker='o', linestyle='-', label='San Martín (Tratamiento)', color='#E63946', zorder=10)
+    ax.plot(control_avg['Periodo'], control_avg['deforestacion_anual'], marker='s', linestyle='--', label='Promedio Control (Amazonas, Loreto, Ucayali)', color='#457B9D')
+    ax.axvline(x=2005, color='#333333', linestyle=':', linewidth=2, label='Ley N° 28575 (Exclusión de San Martín)')
 
-diff_tratamiento = tratamiento_post - tratamiento_pre
-diff_control = control_post - control_pre
-diff_in_diff = diff_tratamiento - diff_control
+    ax.legend(loc='upper left', frameon=False)
 
-print("\n--- Cálculo Preliminar de Diferencias en Diferencias (Período 2001-2010) ---")
-print(f"Promedio Deforestación Anual San Martín (Antes, 2001-05): {tratamiento_pre:.2f} mil ha")
-print(f"Promedio Deforestación Anual San Martín (Después, 2006-10): {tratamiento_post:.2f} mil ha")
-print(f"Cambio en San Martín: {diff_tratamiento:+.2f} mil ha\n")
+    output_path = os.path.join(run_dir, 'smoke_test_divergence_plot.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    logging.info(f"Gráfico de la prueba de humo guardado en: {output_path}")
+    plt.close(fig)
 
-print(f"Promedio Deforestación Anual Control (Antes, 2001-05): {control_pre:.2f} mil ha")
-print(f"Promedio Deforestación Anual Control (Después, 2006-10): {control_post:.2f} mil ha")
-print(f"Cambio en el Control: {diff_control:+.2f} mil ha\n")
+    logging.info("Prueba de humo completada.")
 
-print("--- Conclusión de la Prueba de Humo ---")
-print(f"Estimador Simple de Diferencias en Diferencias: {diff_in_diff:+.2f} mil ha")
-print("Interpretación: El estimador sugiere que, en los 5 años posteriores a la ley, la deforestación anual en San Martín se incrementó en aproximadamente 10.49 mil hectáreas adicionales en comparación a lo que habría ocurrido si hubiera seguido la misma tendencia que el grupo de control.")
+if __name__ == '__main__':
+    main()

@@ -58,3 +58,28 @@
     *   Esta función creará una carpeta única con marca de tiempo para cada ejecución de un script (ej. `reports/analysis_name/run_YYYYMMDD_HHMMSS/`).
     *   Dentro de esta carpeta, se guardarán todos los productos (gráficos, tablas) y un archivo `run.log` que registrará cada paso del proceso.
 3.  **Acción Inmediata:** Se procederá a crear el módulo `utils`, refactorizar todos los scripts de análisis para usar este nuevo sistema y documentar el cambio en el `README.md`.
+
+---
+
+## Entrada 8: Crisis de Reproducibilidad y Sincronización de Datos
+
+1.  **Diagnóstico:** El proyecto entró en una fase de bloqueo crítico. A pesar de los reportes de éxito de las herramientas, los cambios en los archivos de datos no se reflejaban en el sistema del usuario. Múltiples intentos de escribir el archivo `deforestation_analysis_data.csv` fallaron con errores de `Permission Denied` (EBUSY), apuntando a un problema de bloqueo de archivos a nivel del sistema operativo, no a un error de código.
+2.  **Resolución:** Se estableció un nuevo protocolo. Se creó un script (`setup_data.py`) para manejar la escritura de datos de forma programática. Tras confirmar que el usuario había cerrado todos los programas que pudieran bloquear el archivo, el script se ejecutó con éxito, sincronizando finalmente la "fuente de la verdad" de los datos y resolviendo la crisis.
+
+## Entrada 9: Refactorización a una Arquitectura de Análisis Automatizada
+
+1.  **Decisión Estratégica:** Por instrucción del jefe de proyecto, se aprueba una refactorización completa para adoptar una arquitectura de software más robusta, modular y automatizada.
+2.  **Nueva Arquitectura:**
+    *   **Orquestador Central (`main.py`):** Se crea un único punto de entrada que gestiona todos los pasos del análisis (`data`, `eda`, `parallel_trends`, `did`) mediante argumentos de línea de comandos.
+    *   **Módulo de Econometría (`src/core/econometrics.py`):** Se encapsula toda la lógica para los análisis DiD y de tendencias paralelas en una clase reutilizable (`DiDAnalysis`).
+    *   **Flujo de Datos Canónico:** Se refuerza la regla de que todos los análisis leen desde `data/01_raw` y son procesados por `src/data/make_dataset.py`, que ahora filtra los datos para iniciar el análisis oficialmente en **1998**.
+3.  **Implementación:** Se reescribieron y actualizaron todos los scripts del proyecto (`make_dataset.py`, `exploratory_data_analysis.py`, `parallel_trends_validation.py`, `README.md`) para alinearse con la nueva arquitectura.
+
+## Entrada 10: Cierre de la Fase de Validación Inicial
+
+1.  **Ejecución del Pipeline:** Se ejecutó con éxito la nueva cadena de comandos a través del orquestador:
+    *   `python main.py data`: Regeneró el dataset procesado, filtrado desde 1998.
+    *   `python main.py eda`: Regeneró todos los gráficos del análisis exploratorio.
+    *   `python main.py parallel_trends`: Ejecutó la validación visual y estadística del supuesto de tendencias paralelas.
+2.  **Limpieza del Repositorio:** Se eliminaron todos los artefactos (gráficos, tablas) de corridas anteriores para mantener únicamente los resultados válidos y actuales.
+3.  **Estado del Proyecto:** **FASE DE VALIDACIÓN INICIAL COMPLETADA.** El proyecto se encuentra en un estado estable, robusto, automatizado y completamente versionado. La base para el análisis de impacto final está firmemente establecida.

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-
+"""
+Script refactorizado para validar el supuesto de tendencias paralelas.
+"""
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import logging
 import sys
 
-# Añadir el directorio raíz del proyecto al sys.path
-# Esto asegura que podamos importar 'src' como un módulo.
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
@@ -21,32 +21,25 @@ except ImportError:
     sys.exit(1)
 
 def main():
-    """
-    Script principal para validar el supuesto de tendencias paralelas.
-    """
-    # --- PASO 0: Configurar entorno de ejecución ---
+    """Orquesta la validación de tendencias paralelas."""
     run_dir = setup_run_environment('reports/validation')
-    logging.info("Iniciando la validación de tendencias paralelas con datos procesados...")
+    logging.info("Iniciando la validación de tendencias paralelas...")
 
-    # --- PASO 1: Cargar datos procesados ---
     try:
         df = pd.read_csv('data/02_processed/deforestation_analysis_data.csv')
-        logging.info("Datos procesados cargados exitosamente.")
     except FileNotFoundError:
-        logging.error("No se encontró el archivo de datos procesados. Ejecuta primero 'src/data/make_dataset.py'.")
+        logging.error("Abortando. Ejecuta 'python main.py data' primero.")
         return
 
-    # --- PASO 2: Preparar datos para la validación ---
-    logging.info("Preparando datos para la validación...")
     df['tratado'] = (df['departamento'] == 'San Martin').astype(int)
-    pre_intervention_df = df[df['Periodo'] <= 2004].copy()
+    pre_intervention_df = df[df['Periodo'] < 2005].copy()
 
-    # --- PASO 3: Validación Visual ---
     logging.info("Generando gráfico de validación visual...")
     avg_trends = pre_intervention_df.groupby(['Periodo', 'tratado'])['deforestacion_anual'].mean().unstack()
+    
     fig, ax = plt.subplots(figsize=(12, 8))
     fig.suptitle('Validación del Supuesto de Tendencias Paralelas', fontsize=18, fontweight='bold')
-    ax.set_title('Evolución de la Deforestación Promedio (1998-2004)', fontsize=12, fontstyle='italic', pad=20)
+    ax.set_title(f'Evolución de la Deforestación Promedio ({pre_intervention_df.Periodo.min()}-{pre_intervention_df.Periodo.max()})', fontsize=12, fontstyle='italic', pad=20)
     ax.set_xlabel('Año')
     ax.set_ylabel('Deforestación Anual Promedio (miles de ha)')
     ax.grid(True, which='both', linestyle='--', linewidth=0.5)
@@ -60,32 +53,28 @@ def main():
     logging.info(f"Gráfico de validación guardado en: {plot_path}")
     plt.close(fig)
 
-    # --- PASO 4: Validación Estadística ---
-    logging.info("Realizando prueba estadística de tendencias paralelas...")
+    logging.info("Realizando prueba estadística...")
     pre_intervention_df['año_norm'] = pre_intervention_df['Periodo'] - pre_intervention_df['Periodo'].min()
     model = smf.ols('deforestacion_anual ~ tratado + año_norm + tratado:año_norm', data=pre_intervention_df).fit()
-    results_summary = model.summary()
-    p_value_interaction = model.pvalues['tratado:año_norm']
-    coef_interaction = model.params['tratado:año_norm']
-
+    
     report_table = f"""
 ==============================================================================
-         Prueba Estadística de Tendencias Paralelas (1998-2004)
+         Prueba Estadística de Tendencias Paralelas ({pre_intervention_df.Periodo.min()}-{pre_intervention_df.Periodo.max()})
 ==============================================================================
 Variable Dependiente: deforestacion_anual
 
-{results_summary}
+{model.summary()}
 ==============================================================================
 
 Interpretación:
 El supuesto de tendencias paralelas requiere que el coeficiente del término de
 interacción ('tratado:año_norm') NO sea estadísticamente significativo.
 
-- Coeficiente de Interacción: {coef_interaction:.4f}
-- P-valor de Interacción: {p_value_interaction:.4f}
+- Coeficiente de Interacción: {model.params['tratado:año_norm']:.4f}
+- P-valor de Interacción: {model.pvalues['tratado:año_norm']:.4f}
 
-Un p-valor > 0.05 sugiere que no podemos rechazar la hipótesis de que las
-tendencias son paralelas, lo cual validaría nuestro supuesto para el análisis DiD.
+Un p-valor > 0.05 sugiere que no podemos rechazar la hipótesis nula de que las
+tendencias son paralelas, lo cual valida nuestro supuesto para el análisis DiD.
 ==============================================================================
 """
     
