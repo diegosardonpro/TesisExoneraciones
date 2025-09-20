@@ -22,15 +22,36 @@ python main.py eda
 ```
 
 **Validar Supuesto de Tendencias Paralelas:**
-Ejecuta la validación visual y estadística indispensable para el modelo DiD.
+Ejecuta la validación visual y estadística indispensable para el modelo DiD. Por defecto, usa 2005 como año de intervención.
 ```bash
 python main.py parallel_trends
 ```
+> **Nota:** Para análisis de sensibilidad, puedes especificar otro año con el flag `--year`:
+> `python main.py parallel_trends --year 2007`
 
 **Ejecutar el Análisis de Impacto DiD:**
-Corre el modelo de Diferencias en Diferencias y genera el reporte de resultados.
+Corre el modelo de Diferencias en Diferencias. Por defecto, usa 2005 como año de intervención.
 ```bash
 python main.py did
+```
+> **Nota:** También puedes especificar el año de intervención para este comando:
+> `python main.py did --year 2007`
+
+**Ejecutar Pruebas de Robustez (Placebo):**
+```bash
+python main.py robustness
+```
+
+**Ejecutar Estudio de Eventos:**
+Descompone el efecto DiD a lo largo del tiempo.
+```bash
+python main.py event_study
+```
+
+**Ejecutar Control Sintético:**
+Corre el análisis SCM para una validación avanzada.
+```bash
+python main.py scm
 ```
 
 ## 3. Estructura del Directorio

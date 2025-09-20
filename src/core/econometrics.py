@@ -63,9 +63,8 @@ class DiDAnalysis:
         ax.set_xticklabels(labels)
         ax.legend(frameon=False, loc='upper left')
 
-        style_plot(fig, ax, title, 
+        style_plot(ax, fig, title, 
                    f"Efecto DiD estimado: {did_results.params['did']:.2f} (p-valor: {did_results.pvalues['did']:.3f})",
-                   "", 'Deforestación Anual Promedio',
                    'Fuente: Elaboración propia con datos de MapBiomas Perú.')
         
         # Guardar la figura
@@ -126,10 +125,11 @@ class DiDAnalysis:
         ax.set_xticks(plot_data['relative_year'])
         ax.legend(frameon=False, loc='lower left')
         
-        style_plot(fig, ax, "Análisis de Estudio de Eventos",
+        ax.set_xlabel(f"Años relativos a la intervención (Año 0 = {self.treatment_year})")
+        ax.set_ylabel("Coeficiente de Impacto (miles de ha)")
+
+        style_plot(ax, fig, "Análisis de Estudio de Eventos",
                    "Evolución del Impacto de la Política Año a Año",
-                   f"Años relativos a la intervención (Año 0 = {self.treatment_year})",
-                   "Coeficiente de Impacto (miles de ha)",
                    'Fuente: Elaboración propia con datos de MapBiomas Perú.')
         
         plot_path = f"{run_dir}/event_study_plot.png"

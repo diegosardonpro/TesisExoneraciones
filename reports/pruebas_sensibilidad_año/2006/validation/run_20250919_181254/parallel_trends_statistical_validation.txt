@@ -1,0 +1,46 @@
+
+==============================================================================
+         Prueba Estadística de Tendencias Paralelas (Intervención: 2006)
+         Período de Prueba: 1998-2005
+==============================================================================
+Variable Dependiente: deforestacion_anual
+
+                             OLS Regression Results                            
+===============================================================================
+Dep. Variable:     deforestacion_anual   R-squared:                       0.239
+Model:                             OLS   Adj. R-squared:                  0.176
+Method:                  Least Squares   F-statistic:                     3.771
+Date:                 Fri, 19 Sep 2025   Prob (F-statistic):             0.0188
+Time:                         18:12:55   Log-Likelihood:                -138.40
+No. Observations:                   40   AIC:                             284.8
+Df Residuals:                       36   BIC:                             291.6
+Df Model:                            3                                         
+Covariance Type:             nonrobust                                         
+====================================================================================
+                       coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------------
+Intercept            7.7967      2.619      2.977      0.005       2.484      13.109
+tratado              7.2817      5.857      1.243      0.222      -4.597      19.161
+año_norm            -0.5200      0.626     -0.831      0.412      -1.790       0.750
+tratado:año_norm     0.8944      1.400      0.639      0.527      -1.945       3.734
+==============================================================================
+Omnibus:                       26.114   Durbin-Watson:                   1.681
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):               50.667
+Skew:                           1.723   Prob(JB):                     9.95e-12
+Kurtosis:                       7.304   Cond. No.                         20.8
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+==============================================================================
+
+Interpretación:
+El supuesto de tendencias paralelas requiere que el coeficiente del término de
+interacción ('tratado:año_norm') NO sea estadísticamente significativo.
+
+- Coeficiente de Interacción: 0.8944
+- P-valor de Interacción: 0.5270
+
+Un p-valor > 0.05 sugiere que no podemos rechazar la hipótesis nula de que las
+tendencias son paralelas, lo cual valida nuestro supuesto para el análisis DiD.
+==============================================================================

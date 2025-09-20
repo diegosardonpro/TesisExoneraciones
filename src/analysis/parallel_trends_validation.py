@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Script refactorizado para validar el supuesto de tendencias paralelas.
+Admite un año de intervención dinámico para análisis de sensibilidad.
 """
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -20,10 +21,13 @@ except ImportError:
     logging.error("La librería 'statsmodels' no está instalada. Por favor, instálala manualmente con 'pip install statsmodels'.")
     sys.exit(1)
 
-def main():
-    """Orquesta la validación de tendencias paralelas."""
-    run_dir = setup_run_environment('reports/validation')
-    logging.info("Iniciando la validación de tendencias paralelas...")
+def main(year=2005):
+    """Orquesta la validación de tendencias paralelas para un año de intervención dado."""
+    # Directorio de salida dinámico para el análisis de sensibilidad
+    output_dir = os.path.join('reports', 'pruebas_sensibilidad_año', str(year), 'validation')
+    run_dir, _ = setup_run_environment(output_dir)
+    
+    logging.info(f"Iniciando la validación de tendencias paralelas para el año de intervención {year}...")
 
     try:
         df = pd.read_csv('data/02_processed/deforestation_analysis_data.csv')
@@ -32,13 +36,18 @@ def main():
         return
 
     df['tratado'] = (df['departamento'] == 'San Martin').astype(int)
-    pre_intervention_df = df[df['Periodo'] < 2005].copy()
+    # Usar el año de intervención pasado como parámetro
+    pre_intervention_df = df[df['Periodo'] < year].copy()
+
+    if pre_intervention_df.empty:
+        logging.warning(f"No hay datos pre-intervención para el año {year}. Saltando validación.")
+        return
 
     logging.info("Generando gráfico de validación visual...")
     avg_trends = pre_intervention_df.groupby(['Periodo', 'tratado'])['deforestacion_anual'].mean().unstack()
     
     fig, ax = plt.subplots(figsize=(12, 8))
-    fig.suptitle('Validación del Supuesto de Tendencias Paralelas', fontsize=18, fontweight='bold')
+    fig.suptitle(f'Validación de Tendencias Paralelas (Intervención: {year})', fontsize=18, fontweight='bold')
     ax.set_title(f'Evolución de la Deforestación Promedio ({pre_intervention_df.Periodo.min()}-{pre_intervention_df.Periodo.max()})', fontsize=12, fontstyle='italic', pad=20)
     ax.set_xlabel('Año')
     ax.set_ylabel('Deforestación Anual Promedio (miles de ha)')
@@ -59,7 +68,8 @@ def main():
     
     report_table = f"""
 ==============================================================================
-         Prueba Estadística de Tendencias Paralelas ({pre_intervention_df.Periodo.min()}-{pre_intervention_df.Periodo.max()})
+         Prueba Estadística de Tendencias Paralelas (Intervención: {year})
+         Período de Prueba: {pre_intervention_df.Periodo.min()}-{pre_intervention_df.Periodo.max()}
 ==============================================================================
 Variable Dependiente: deforestacion_anual
 
@@ -83,7 +93,11 @@ tendencias son paralelas, lo cual valida nuestro supuesto para el análisis DiD.
         f.write(report_table)
     logging.info(f"Resultados de la validación estadística guardados en: {table_path}")
     
-    logging.info("Validación de tendencias paralelas completada.")
+    logging.info(f"Validación de tendencias paralelas para el año {year} completada.")
 
 if __name__ == '__main__':
-    main()
+    # Permite la ejecución directa del script con un año por defecto
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--year", type=int, default=2005)
+    args = parser.parse_args()
+    main(year=args.year)

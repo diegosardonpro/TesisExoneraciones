@@ -1,0 +1,83 @@
+
+==============================================================================
+    Resultados del Análisis de Diferencias en Diferencias (DiD)
+    Año de Intervención: 2008
+==============================================================================
+
+Análisis de Impacto de Corto Plazo (2008-2012)
+----------------------------------------------
+                             OLS Regression Results                            
+===============================================================================
+Dep. Variable:     deforestacion_anual   R-squared:                       0.008
+Model:                             OLS   Adj. R-squared:                 -0.035
+Method:                  Least Squares   F-statistic:                    0.1890
+Date:                 Fri, 19 Sep 2025   Prob (F-statistic):              0.668
+Time:                         18:13:41   Log-Likelihood:                -96.110
+No. Observations:                   25   AIC:                             196.2
+Df Residuals:                       23   BIC:                             198.7
+Df Model:                            1                                         
+Covariance Type:             nonrobust                                         
+==================================================================================
+                     coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept          5.8437      1.318      4.434      0.000       3.117       8.570
+tratado            1.2813      2.947      0.435      0.668      -4.816       7.378
+post_treatment     5.8437      1.318      4.434      0.000       3.117       8.570
+did                1.2813      2.947      0.435      0.668      -4.816       7.378
+==============================================================================
+Omnibus:                       10.872   Durbin-Watson:                   1.123
+Prob(Omnibus):                  0.004   Jarque-Bera (JB):                9.503
+Skew:                           1.146   Prob(JB):                      0.00864
+Kurtosis:                       4.967   Cond. No.                     4.08e+16
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The smallest eigenvalue is 3.15e-32. This might indicate that there are
+strong multicollinearity problems or that the design matrix is singular.
+
+Interpretación:
+El coeficiente 'did' representa el efecto causal estimado de la política.
+- Efecto Estimado (Coef.): 1.2813 mil hectáreas.
+- P-valor: 0.6678
+
+Conclusión: El efecto no es estadísticamente significativo al 95% de confianza.
+
+==============================================================================
+
+Análisis de Impacto de Período Completo (1998-2023)
+--------------------------------------------------
+                             OLS Regression Results                            
+===============================================================================
+Dep. Variable:     deforestacion_anual   R-squared:                       0.134
+Model:                             OLS   Adj. R-squared:                  0.113
+Method:                  Least Squares   F-statistic:                     6.447
+Date:                 Fri, 19 Sep 2025   Prob (F-statistic):           0.000429
+Time:                         18:13:41   Log-Likelihood:                -530.46
+No. Observations:                  129   AIC:                             1069.
+Df Residuals:                      125   BIC:                             1080.
+Df Model:                            3                                         
+Covariance Type:             nonrobust                                         
+==================================================================================
+                     coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept          5.6118      2.374      2.364      0.020       0.914      10.310
+tratado           11.4302      5.308      2.153      0.033       0.925      21.935
+post_treatment    12.6502      3.035      4.168      0.000       6.643      18.657
+did              -20.7934      6.770     -3.071      0.003     -34.193      -7.394
+==============================================================================
+Omnibus:                       46.595   Durbin-Watson:                   0.939
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              147.286
+Skew:                           1.316   Prob(JB):                     1.04e-32
+Kurtosis:                       7.525   Cond. No.                         7.78
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+Interpretación:
+- Efecto Estimado (Coef.): -20.7934 mil hectáreas.
+- P-valor: 0.0026
+
+Conclusión: El efecto es estadísticamente significativo al 95% de confianza.
+==============================================================================

@@ -97,3 +97,24 @@
 2.  **Ejecución Final:** Se re-ejecutó el pipeline completo con el script SCM mejorado, generando los artefactos finales de la investigación.
 3.  **Documentación y Versionamiento:** Se actualizó el diario de investigación por última vez y se subió el estado final y completo del proyecto al repositorio de GitHub.
 4.  **Estado del Proyecto:** **CERRADO.**
+
+## Entrada 13: Análisis de Sensibilidad y Refactorización del Pipeline
+
+1.  **Hipótesis del Investigador:** Tras observar un efecto contraintuitivo en el análisis DiD original (un aumento de la deforestación a corto plazo), se planteó la hipótesis de que la implementación de la ley pudo haber demorado, y que el año de intervención real pudo ser posterior a 2005.
+2.  **Decisión Metodológica:** Se aprobó un desvío del plan principal para realizar un **análisis de sensibilidad** sobre el año de intervención.
+3.  **Refactorización y Parametrización:**
+    *   Se realizó una **corrección preventiva de bugs** en todo el pipeline de análisis (`robustness_checks.py`, `event_study_analysis.py`, `did_analysis.py`, etc.), solucionando errores recurrentes de `TypeError` y actualizando llamadas a clases que habían quedado desactualizadas.
+    *   Se **parametrizó el orquestador `main.py`** para aceptar un argumento `--year`, permitiendo la ejecución dinámica del análisis para cualquier año de intervención.
+    *   Se modificaron los scripts `parallel_trends_validation.py` y `did_analysis.py` para usar este nuevo parámetro, y para guardar sus resultados en una carpeta de pruebas dedicada (`reports/pruebas_sensibilidad_año/`).
+4.  **Ejecución del Análisis:** Se ejecutó el pipeline completo de validación y análisis DiD para los años 2006, 2007, 2008 y 2009.
+5.  **Resultados y Hallazgos:** Se generó una tabla comparativa con los resultados:
+
+| Año de Intervención | Impacto a Corto Plazo (Primeros 5 años) | P-valor (Corto Plazo) | Conclusión (Corto Plazo) | Impacto a Largo Plazo (Período Completo) | P-valor (Largo Plazo) | Conclusión (Largo Plazo) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **2005 (Original)** | **+5,533 ha/año** | 0.0073 | **Significativo** | **-16,095 ha/año** | 0.0373 | **Significativo** |
+| **2006** | +4,828 ha/año | 0.0179 | **Significativo** | -16,990 ha/año | 0.0221 | **Significativo** |
+| **2007** | +3,270 ha/año | 0.1628 | No Significativo | -18,623 ha/año | 0.0092 | **Significativo** |
+| **2008** | +1,281 ha/año | 0.6678 | No Significativo | -20,793 ha/año | 0.0026 | **Significativo** |
+| **2009** | -657 ha/año | 0.8355 | No Significativo | -21,496 ha/año | 0.0015 | **Significativo** |
+
+6.  **Conclusión del Análisis de Sensibilidad:** Los resultados validan la hipótesis del investigador. El efecto adverso a corto plazo pierde significancia a medida que se retrasa el año de intervención, mientras que el efecto beneficioso a largo plazo se mantiene robusto y se fortalece. Esto sugiere que la política fue efectiva, pero sus efectos positivos tardaron en manifestarse.

@@ -1,0 +1,9 @@
+Resultados del Análisis SCM...
+Amazonas         1.0
+Loreto           0.0
+Ucayali          0.0
+Madre de Dios    0.0
+                V  treated  synthetic  sample mean
+defo_2002  0.3634    13.23       5.80       0.6825
+defo_2003  0.2401    19.48      -0.83       1.1425
+defo_2004  0.3965    14.04       5.11       3.8100

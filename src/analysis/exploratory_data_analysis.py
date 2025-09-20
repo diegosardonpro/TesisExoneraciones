@@ -31,7 +31,7 @@ def style_chart(ax, fig, title, subtitle, xlabel, source_note):
 
 def main():
     """Genera los gráficos del Análisis Exploratorio de Datos (EDA)."""
-    run_dir = setup_run_environment('reports/figures/eda')
+    run_dir, _ = setup_run_environment('reports/figures/eda')
     logging.info("Iniciando la generación de gráficos del EDA...")
 
     try:

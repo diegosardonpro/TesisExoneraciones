@@ -26,7 +26,7 @@ def main():
     Función principal para orquestar el análisis de Estudio de Eventos.
     """
     # --- PASO 1: Configurar Entorno de Ejecución ---
-    run_dir = setup_run_environment('reports/event_study_analysis')
+    run_dir, _ = setup_run_environment('reports/event_study_analysis')
     logging.info("Iniciando el análisis de Estudio de Eventos...")
 
     # --- PASO 2: Cargar Datos a través del Analizador ---

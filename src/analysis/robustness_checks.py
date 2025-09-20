@@ -48,14 +48,13 @@ def run_placebo_test(analyzer, placebo_year, run_dir):
 
 def main():
     """Función principal para orquestar las pruebas de robustez."""
-    run_dir = setup_run_environment('reports/robustness_checks')
+    run_dir, _ = setup_run_environment('reports/robustness_checks')
     logging.info("Iniciando pruebas de robustez...")
 
     try:
         analyzer = DiDAnalysis(
             data_path='data/02_processed/deforestation_analysis_data.csv',
-            treatment_group='San Martin',
-            control_group=['Amazonas', 'Loreto', 'Ucayali'],
+            treatment_unit='San Martin',
             treatment_year=2005 # El año real de la intervención
         )
     except FileNotFoundError:

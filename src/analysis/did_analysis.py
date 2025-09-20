@@ -2,11 +2,13 @@
 """
 Script refactorizado para ejecutar el análisis de impacto DiD utilizando
 el módulo central de econometría y generando productos de "Investigación Anfibia".
+Admite un año de intervención dinámico para análisis de sensibilidad.
 """
 
 import os
 import logging
 import sys
+import argparse
 
 # --- Configuración del Entorno ---
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -17,23 +19,24 @@ if project_root not in sys.path:
 from src.utils import setup_run_environment
 from src.core.econometrics import DiDAnalysis
 
-def main():
+def main(year=2005):
     """
-    Función principal para orquestar el análisis de Diferencias en Diferencias (DiD).
-    Implementa el "Enfoque Anfibio" generando tanto un reporte técnico como visualizaciones.
+    Función principal para orquestar el análisis de Diferencias en Diferencias (DiD)
+    para un año de intervención específico.
     """
-    # --- PASO 1: Configurar Entorno de Ejecución ---
-    run_dir = setup_run_environment('reports/did_analysis')
-    logging.info("Iniciando el análisis de Diferencias en Diferencias (DiD)...")
+    # --- PASO 1: Configurar Entorno de Ejecución Dinámico ---
+    output_dir = os.path.join('reports', 'pruebas_sensibilidad_año', str(year), 'did_analysis')
+    run_dir, _ = setup_run_environment(output_dir)
+    logging.info(f"Iniciando el análisis DiD para el año de intervención {year}...")
 
-    # --- PASO 2: Inicializar el Análisis ---
+    # --- PASO 2: Inicializar el Análisis con el Año Específico ---
     try:
         analyzer = DiDAnalysis(
             data_path='data/02_processed/deforestation_analysis_data.csv',
             treatment_unit='San Martin',
-            treatment_year=2005
+            treatment_year=year
         )
-        logging.info("Motor de análisis econométrico inicializado con éxito.")
+        logging.info(f"Motor de análisis econométrico inicializado para el año {year}.")
     except FileNotFoundError:
         logging.error("No se encontró el dataset procesado. Abortando. Ejecuta 'python main.py data' primero.")
         return
@@ -41,9 +44,10 @@ def main():
         logging.error(f"Error al inicializar el analizador: {e}")
         return
 
-    # --- PASO 3: Ejecutar Modelos Econométricos ---
+    # --- PASO 3: Ejecutar Modelos Econométricos (Corto y Largo Plazo Dinámicos) ---
     logging.info("Ejecutando modelos DiD para corto y largo plazo...")
-    did_short_term_results = analyzer.run_did_model(start_year=2005, end_year=2009)
+    short_term_end_year = year + 4
+    did_short_term_results = analyzer.run_did_model(start_year=year, end_year=short_term_end_year)
     did_full_term_results = analyzer.run_did_model()
 
     # --- PASO 4: Generar Productos "Anfibios" ---
@@ -53,9 +57,10 @@ def main():
     report_content = f"""
 ==============================================================================
     Resultados del Análisis de Diferencias en Diferencias (DiD)
+    Año de Intervención: {year}
 ==============================================================================
 
-Análisis de Impacto de Corto Plazo (2005-2009)
+Análisis de Impacto de Corto Plazo ({year}-{short_term_end_year})
 ----------------------------------------------
 {did_short_term_results.summary()}
 
@@ -90,7 +95,7 @@ Conclusión: El efecto {'es' if did_full_term_results.pvalues['did'] < 0.05 else
     # Gráfico para el corto plazo
     plot_path_short = analyzer.plot_did_results(
         did_results=did_short_term_results,
-        title='Impacto de Corto Plazo (2005-2009) en la Deforestación',
+        title=f'Impacto de Corto Plazo ({year}-{short_term_end_year}) en la Deforestación',
         run_dir=run_dir,
         filename='did_summary_short_term.png'
     )
@@ -99,13 +104,16 @@ Conclusión: El efecto {'es' if did_full_term_results.pvalues['did'] < 0.05 else
     # Gráfico para el período completo
     plot_path_full = analyzer.plot_did_results(
         did_results=did_full_term_results,
-        title='Impacto de Período Completo (1998-2023) en la Deforestación',
+        title=f'Impacto de Período Completo (1998-2023) en la Deforestación',
         run_dir=run_dir,
         filename='did_summary_full_term.png'
     )
     logging.info(f"Visualización de período completo guardada en: {plot_path_full}")
     
-    logging.info("Análisis de Diferencias en Diferencias completado exitosamente.")
+    logging.info(f"Análisis de Diferencias en Diferencias para el año {year} completado exitosamente.")
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--year", type=int, default=2005)
+    args = parser.parse_args()
+    main(year=args.year)
