@@ -1,0 +1,7 @@
+Resultados del Análisis SCM...
+Amazonas         0.0
+Loreto           1.0
+Ucayali          0.0
+Madre de Dios    0.0
+                       V  treated  synthetic  sample mean
+deforestacion_anual  1.0   16.325     14.395       6.9225
