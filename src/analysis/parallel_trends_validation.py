@@ -24,7 +24,7 @@ except ImportError:
 def main(year=2005):
     """Orquesta la validación de tendencias paralelas para un año de intervención dado."""
     # Directorio de salida dinámico para el análisis de sensibilidad
-    output_dir = os.path.join('reports', 'pruebas_sensibilidad_año', str(year), 'validation')
+    output_dir = os.path.join('reports', 'exploratory_two_shocks_analysis', str(year), 'validation')
     run_dir, _ = setup_run_environment(output_dir)
     
     logging.info(f"Iniciando la validación de tendencias paralelas para el año de intervención {year}...")

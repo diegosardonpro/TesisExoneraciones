@@ -25,7 +25,7 @@ def main(year=2005):
     para un año de intervención específico.
     """
     # --- PASO 1: Configurar Entorno de Ejecución Dinámico ---
-    output_dir = os.path.join('reports', 'pruebas_sensibilidad_año', str(year), 'did_analysis')
+    output_dir = os.path.join('reports', 'exploratory_two_shocks_analysis', str(year), 'did_analysis')
     run_dir, _ = setup_run_environment(output_dir)
     logging.info(f"Iniciando el análisis DiD para el año de intervención {year}...")
 

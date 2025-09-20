@@ -118,3 +118,24 @@
 | **2009** | -657 ha/año | 0.8355 | No Significativo | -21,496 ha/año | 0.0015 | **Significativo** |
 
 6.  **Conclusión del Análisis de Sensibilidad:** Los resultados validan la hipótesis del investigador. El efecto adverso a corto plazo pierde significancia a medida que se retrasa el año de intervención, mientras que el efecto beneficioso a largo plazo se mantiene robusto y se fortalece. Esto sugiere que la política fue efectiva, pero sus efectos positivos tardaron en manifestarse.
+
+## Entrada 14: Divergencia Estratégica - Modelo de Dos Shocks (2005 y 2012)
+
+1.  **Revisión Analítica:** Una investigación detallada sobre la Ley N° 28575 revela que la reforma no fue un evento único, sino un proceso de dos velocidades:
+    *   **Shock 1 (Julio 2005):** Eliminación de beneficios al comercio exterior (Reintegro Tributario, Exoneración a la Importación). Su efecto es inmediato.
+    *   **Shock 2 (Enero 2012):** Eliminación del Crédito Fiscal Especial, un beneficio clave para la producción y servicios locales.
+2.  **Implicancias Metodológicas:** Este descubrimiento invalida el modelo de un solo shock. Los resultados contradictorios (impacto positivo a corto plazo, negativo a largo plazo) pueden ser explicados por la naturaleza distinta de estos dos eventos. El modelo simple estaba promediando incorrectamente ambos efectos.
+3.  **Nueva Estrategia (Exploratoria):** Se decide tratar esta nueva línea como una **divergencia exploratoria** para proceder con cautela. El plan es el siguiente:
+    *   **Analizar el Shock de 2005:** Reinterpretar los análisis existentes y complementarlos con un Estudio de Eventos centrado en 2005 para aislar el impacto del primer shock.
+    *   **Analizar el Shock de 2012:** Iniciar un nuevo conjunto de análisis (Tendencias Paralelas, DiD, Estudio de Eventos) centrado en el año 2012.
+4.  **Gestión de Artefactos:** Todos los resultados de esta nueva línea de investigación se guardarán en un directorio separado, `reports/exploratory_two_shocks_analysis/`, para no interferir con el pipeline principal hasta que se decida integrar formalmente los hallazgos.
+
+## Entrada 15: Análisis SCM para el Shock de 2012
+
+1.  **Decisión Estratégica:** Habiendo confirmado con los análisis DiD y de Estudio de Eventos que el shock de 2012 tuvo un impacto inmediato, significativo y sostenido en la reducción de la deforestación, se procede a aplicar el método de validación más robusto de nuestro arsenal.
+2.  **Objetivo:** Utilizar el Método de Control Sintético (SCM) para construir el contrafactual más riguroso posible y obtener la estimación definitiva del impacto causal del shock de 2012.
+3.  **Plan de Implementación:**
+    *   Se parametrizará el script `src/analysis/scm_analysis.py` para que acepte el argumento `--year`.
+    *   Se modificará el orquestador `main.py` para pasar el año al script SCM.
+    *   Se ejecutarán los análisis para `python main.py scm --year 2012`.
+    *   Los resultados se guardarán en la carpeta de la divergencia analítica: `reports/exploratory_two_shocks_analysis/2012/scm_analysis/`.

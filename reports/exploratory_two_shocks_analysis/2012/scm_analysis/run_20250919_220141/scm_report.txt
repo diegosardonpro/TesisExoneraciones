@@ -1,0 +1,11 @@
+Resultados del Análisis SCM (Intervención: 2012)
+======================================================
+Amazonas         0.3651
+Loreto           0.1634
+Ucayali          0.4715
+Madre de Dios    0.0000
+
+                V  treated  synthetic  sample mean
+defo_2009  0.0000    17.30    12.7285      10.3875
+defo_2010  0.0139    17.72    14.5523      14.3800
+defo_2011  0.9861     7.98     8.0260       9.4825

@@ -94,10 +94,10 @@ def main():
             robustness_checks.main()
         elif args.step == "event_study":
             from src.analysis import event_study_analysis
-            event_study_analysis.main()
+            event_study_analysis.main(year=args.year)
         elif args.step == "scm":
             from src.analysis import scm_analysis
-            scm_analysis.main()
+            scm_analysis.main(year=args.year)
             
         logging.info(f"--- Paso '{args.step}' para el año '{args.year}' completado exitosamente. ---")
 
